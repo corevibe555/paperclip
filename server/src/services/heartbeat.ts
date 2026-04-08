@@ -4208,7 +4208,7 @@ export function heartbeatService(db: Db) {
       running.child.kill("SIGTERM");
       const graceMs = Math.max(1, running.graceSec) * 1000;
       setTimeout(() => {
-        if (!running.child.killed) {
+        if (running.child.exitCode === null) {
           running.child.kill("SIGKILL");
         }
       }, graceMs);
@@ -4262,6 +4262,12 @@ export function heartbeatService(db: Db) {
       const running = runningProcesses.get(run.id);
       if (running) {
         running.child.kill("SIGTERM");
+        const graceMs = Math.max(1, running.graceSec) * 1000;
+        setTimeout(() => {
+          if (running.child.exitCode === null) {
+            running.child.kill("SIGKILL");
+          }
+        }, graceMs);
         runningProcesses.delete(run.id);
       }
       await releaseIssueExecutionAndPromote(run);
